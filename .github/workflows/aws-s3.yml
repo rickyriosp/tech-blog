@@ -61,7 +61,7 @@ jobs:
         #aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         #aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
-        audience: s3.amazonaws.com
+        audience: sts.amazonaws.com
         role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
         role-session-name: github-actions-session
 
