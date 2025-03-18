@@ -69,10 +69,11 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: tech-blog
+        path: public # GitHub Actions no longer adds an extra root directory to the downloaded archive, need to manually specify it
 
     - name: Deploy blog to S3
       run: |
-        aws s3 sync tech-blog/ s3://${{env.BUCKET_NAME}} --delete
+        aws s3 sync public/ s3://${{env.BUCKET_NAME}} --delete
     
     - name: Invalidate CloudFront Cache
       run: |
