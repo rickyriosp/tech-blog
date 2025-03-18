@@ -62,7 +62,7 @@ jobs:
         #aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         audience: sts.amazonaws.com
         aws-region: ${{ env.AWS_REGION }}
-        role-to-assume: arn:aws:iam::879381279300:role/GitHubS3Role #arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
+        role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
         role-session-name: github-actions-session
 
     - name: Download build artifact
