@@ -55,7 +55,7 @@ jobs:
           hugo-version: 'latest'
           extended: true
       
-      - name: Checkout
+      - name: Checkout branch
         uses: actions/checkout@v4
         with:
             submodules: recursive
@@ -68,6 +68,12 @@ jobs:
           hugo \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tech-blog
+          path: public/*
   
   deploy:
     name: Deploy
@@ -85,6 +91,11 @@ jobs:
         audience: s3.amazonaws.com
         role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
         role-session-name: github-actions-session
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: tech-blog
 
     - name: Deploy blog to S3
       run: |
