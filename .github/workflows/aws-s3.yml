@@ -9,7 +9,7 @@ env:
   AWS_REGION: us-east-1                       # set this to your preferred AWS region, e.g. us-west-1
   AWS_ACCOUNT: 879381279300                   # set this to your account number
   BUCKET_NAME: techblog.riosr.com             # set this to your S3 bucket name
-  IAM_ROLE_NAME: GitHubActions                # set this to your IAM Role name
+  IAM_ROLE_NAME: GitHubActionsRole            # set this to your IAM Role name
   DIST_ID: EAIMUIEIRFFWJ                      # set this to your CloudFront Distribution ID
 
 permissions:
