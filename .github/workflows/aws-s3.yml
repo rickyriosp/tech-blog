@@ -64,7 +64,6 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
         role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
         role-session-name: github-actions-session
-        secret-role-arn: ${{secrets.IAM_ROLE_ARN}}
 
     - name: Download build artifact
       uses: actions/download-artifact@v4
