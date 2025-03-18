@@ -9,7 +9,7 @@ env:
   AWS_REGION: us-east-1                       # set this to your preferred AWS region, e.g. us-west-1
   AWS_ACCOUNT: 879381279300                   # set this to your account number
   BUCKET_NAME: techblog.riosr.com             # set this to your S3 bucket name
-  IAM_ROLE_NAME: GitHubActionsRole            # set this to your IAM Role name
+  IAM_ROLE_NAME: GitHubS3Role                 # set this to your IAM Role name
   DIST_ID: EAIMUIEIRFFWJ                      # set this to your CloudFront Distribution ID
 
 permissions:
@@ -64,6 +64,7 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
         role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
         role-session-name: github-actions-session
+        secret-role-arn: ${{secrets.IAM_ROLE_ARN}}
 
     - name: Download build artifact
       uses: actions/download-artifact@v4
