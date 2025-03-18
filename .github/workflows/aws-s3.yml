@@ -72,7 +72,7 @@ jobs:
 
     - name: Deploy blog to S3
       run: |
-        aws s3 sync public/ s3://${{env.BUCKET_NAME}} --delete
+        aws s3 sync tech-blog/ s3://${{env.BUCKET_NAME}} --delete
     
     - name: Invalidate CloudFront Cache
       run: |
