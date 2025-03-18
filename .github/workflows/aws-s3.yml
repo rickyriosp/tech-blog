@@ -1,0 +1,79 @@
+name: Deploy Hugo Blog to Amazon S3
+
+on:
+  workflow_dispatch:      # manual trigger
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: us-east-1                       # set this to your preferred AWS region, e.g. us-west-1
+  AWS_ACCOUNT: 879381279300                   # set this to your account number
+  BUCKET_NAME: techblog.riosr.com             # set this to your S3 bucket name
+  IAM_ROLE_NAME: GitHubActions                # set this to your IAM Role name
+  DIST_ID: EAIMUIEIRFFWJ                      # set this to your CloudFront Distribution ID
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+          extended: true
+      
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+            submodules: recursive
+      
+      - name: Build with Hugo
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+        run: |
+          hugo \
+            --minify \
+            --baseURL "${{ steps.pages.outputs.base_url }}/"
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tech-blog
+          path: public/*
+  
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    needs: build
+
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        #aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        #aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        #audience: sts.amazonaws.com
+        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
+        role-session-name: github-actions-session
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: tech-blog
+
+    - name: Deploy blog to S3
+      run: |
+        aws s3 sync public/ s3://${{env.BUCKET_NAME}} --delete
+    
+    - name: Invalidate CloudFront Cache
+      run: |
+        aws cloudfront create-invalidation --distribution-id ${{env.DIST_ID}} --paths "/*"
