@@ -545,7 +545,7 @@ theme = "LoveIt"
 
 # Permalinks config
 [Permalinks]
-  posts = ":year/:month/:slug"
+  posts = "posts/:year/:month/:slug"
 #   posts = ":filename"
 
 # Privacy config

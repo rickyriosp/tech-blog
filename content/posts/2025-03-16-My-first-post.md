@@ -1,7 +1,7 @@
 +++
 title = 'My First Post'
 date = '2025-03-16'
-draft = true
+draft = false
 +++
 
 Congratulations on starting your tech blog!
