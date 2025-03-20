@@ -35,7 +35,7 @@ export class CdkStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         actions: ['s3:GetObject'],
         resources: [`arn:aws:s3:::${props.blogUrl}/*`],
-        principals: [new iam.ServicePrincipal('*')],
+        principals: [new iam.AnyPrincipal()],
       }),
     );
 
@@ -93,9 +93,9 @@ export class CdkStack extends cdk.Stack {
     //   thumbprints: ['6938fd4d98bab03faadb97b34396831e3780aea1'],
     // });
 
-    // // ----------------------------------------------------------------------
-    // // IAM Policy
-    // // ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // IAM Policy
+    // ----------------------------------------------------------------------
     // const policyDocument = new iam.PolicyDocument({
     //   statements: [
     //     new iam.PolicyStatement({
