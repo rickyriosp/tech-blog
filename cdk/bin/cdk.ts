@@ -22,3 +22,5 @@ new CdkStack(app, 'CdkStack', {
 
   blogUrl: blogUrl,
 });
+
+cdk.Tags.of(app).add('Application', 'Hugo Blog');
