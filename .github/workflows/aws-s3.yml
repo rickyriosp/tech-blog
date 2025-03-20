@@ -37,7 +37,9 @@ jobs:
           submodules: recursive
 
       - name: Install AWS CDK
-        run: npm i -g aws-cdk
+        run: |
+          npm i -g aws-cdk
+          npm install
       
       - name: Synth stack
         run: |
