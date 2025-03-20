@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   infra:
-    name: cdk-infra
+    name: CDK
     runs-on: ubuntu-latest
 
     steps:
