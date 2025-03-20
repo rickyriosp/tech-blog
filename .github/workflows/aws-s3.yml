@@ -9,7 +9,8 @@ env:
   AWS_REGION: us-east-1 # set this to your preferred AWS region, e.g. us-west-1
   AWS_ACCOUNT: 879381279300 # set this to your account number
   BUCKET_NAME: techblog.riosr.com # set this to your S3 bucket name
-  IAM_ROLE_NAME: GitHubS3Role # set this to your IAM Role name
+  S3_ROLE_NAME: GitHubS3Role # set this to your IAM Role name
+  CDK_ROLE_NAME: GitHubCdkRole # set this to your IAM Role name
   DIST_ID: EAIMUIEIRFFWJ # set this to your CloudFront Distribution ID
 
 permissions:
@@ -17,9 +18,46 @@ permissions:
   contents: read # This is required for actions/checkout
 
 jobs:
+  infra:
+    name: cdk-infra
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.CDK_ROLE_NAME}}
+          role-session-name: github-session-cdk
+      
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install AWS CDK
+        run: npm i -g aws-cdk
+      
+      - name: Synth stack
+        run: |
+          cd cdk
+          cdk synth
+      
+      - name: Diff stack
+        run: |
+          cd cdk
+          cdk diff
+
+      - name: Deploy stack
+        run: |
+          cd cdk
+          cdk deploy --all --require-approval never
+  
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: infra
 
     steps:
       - name: Setup Hugo
@@ -62,8 +100,8 @@ jobs:
           #aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           audience: sts.amazonaws.com
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.IAM_ROLE_NAME}}
-          role-session-name: github-actions-session
+          role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT}}:role/${{env.S3_ROLE_NAME}}
+          role-session-name: github-session-s3
 
       - name: Download build artifact
         uses: actions/download-artifact@v4
