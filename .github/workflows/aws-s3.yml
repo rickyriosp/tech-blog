@@ -11,7 +11,7 @@ env:
   BUCKET_NAME: techblog.riosr.com # set this to your S3 bucket name
   S3_ROLE_NAME: GitHubS3Role # set this to your IAM Role name
   CDK_ROLE_NAME: GitHubCdkRole # set this to your IAM Role name
-  DIST_ID: EAIMUIEIRFFWJ # set this to your CloudFront Distribution ID
+  DIST_ID: E3J9RG9DSQTG4A # set this to your CloudFront Distribution ID
 
 permissions:
   id-token: write # This is required for requesting the JWT
