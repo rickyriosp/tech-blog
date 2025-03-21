@@ -1,3 +1,5 @@
+# This workflow gets triggered for push event in main branch
+
 name: Deploy Hugo Blog to Amazon S3
 
 on:
@@ -9,8 +11,8 @@ env:
   AWS_REGION: us-east-1 # set this to your preferred AWS region, e.g. us-west-1
   AWS_ACCOUNT: 879381279300 # set this to your account number
   BUCKET_NAME: techblog.riosr.com # set this to your S3 bucket name
-  S3_ROLE_NAME: GitHubS3Role # set this to your IAM Role name
   CDK_ROLE_NAME: GitHubCdkRole # set this to your IAM Role name
+  S3_ROLE_NAME: GitHubS3Role # set this to your IAM Role name
   DIST_ID: E3J9RG9DSQTG4A # set this to your CloudFront Distribution ID
 
 permissions:
@@ -21,6 +23,13 @@ jobs:
   infra:
     name: CDK
     runs-on: ubuntu-latest
+
+    # s3 bucket name and cloudfront distribution id are stored as outputs
+    # and will be passed to the deploy job
+    outputs:
+      s3_bucket: ${{steps.cdk_out.outputs.s3}}
+      cf_id: ${{steps.cdk_out.outputs.cfid}}
+      iam_role: ${{steps.cdk_out.outputs.role}}
 
     steps:
       - name: Configure AWS credentials
@@ -47,15 +56,22 @@ jobs:
           cd cdk
           cdk synth
       
-      - name: Diff stack
-        run: |
-          cd cdk
-          cdk diff
+      # - name: Diff stack
+      #   run: |
+      #     cd cdk
+      #     cdk diff
 
       - name: Deploy stack
         run: |
           cd cdk
           cdk deploy --all --require-approval never
+      
+      - name: Outputs
+        id: cdk_out
+        run: |
+          echo "s3=$(aws cloudformation describe-stacks --stack-name CdkStack --query "Stacks[0].Outputs[?OutputKey=='BlogBucketName'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
+          echo "cfid=$(aws cloudformation describe-stacks --stack-name CdkStack --query "Stacks[0].Outputs[?OutputKey=='BlogDistributionId'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
+          echo "role=$(aws cloudformation describe-stacks --stack-name CdkStack --query "Stacks[0].Outputs[?OutputKey=='GitHubS3RoleName'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
   
   build:
     name: Build

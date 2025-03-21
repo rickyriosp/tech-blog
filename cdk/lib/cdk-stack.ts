@@ -29,9 +29,15 @@ export class CdkStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: false,
       versioned: false,
+      autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: '404.html',
+    });
+
+    new cdk.CfnOutput(this, 'BlogBucketOutput', {
+      key: 'BlogBucketName',
+      value: blogBucket.bucketName
     });
 
     // blogBucket.addToResourcePolicy(
@@ -89,6 +95,11 @@ export class CdkStack extends cdk.Stack {
       sslSupportMethod: cloudfront.SSLMethod.SNI,
     });
 
+    new cdk.CfnOutput(this, 'BlogDistributionOutput', {
+      key: 'BlogDistributionId',
+      value: blogDistribution.distributionId
+    });
+
     // ----------------------------------------------------------------------
     // OIDC Provider
     // ----------------------------------------------------------------------
@@ -143,6 +154,11 @@ export class CdkStack extends cdk.Stack {
           'token.actions.githubusercontent.com:sub': ['repo:rickyriosp/tech-blog:*'],
         },
       }),
+    });
+
+    new cdk.CfnOutput(this, 'GitHubS3RoleOutput', {
+      key: 'GitHubS3RoleName',
+      value: githubRole.roleName
     });
   }
 }
