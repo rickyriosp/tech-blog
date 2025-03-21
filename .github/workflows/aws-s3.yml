@@ -21,8 +21,8 @@ jobs:
     name: CDK
     runs-on: ubuntu-latest
 
-    # s3 bucket name and cloudfront distribution id are stored as outputs
-    # and will be passed to the deploy job
+    # s3 bucket name, cloudfront distribution id, and role name
+    # are stored as outputs and will be passed to the deploy job
     outputs:
       s3_bucket: ${{steps.cdk_out.outputs.s3}}
       cf_id: ${{steps.cdk_out.outputs.cfid}}
@@ -95,8 +95,7 @@ jobs:
           HUGO_ENVIRONMENT: production
         run: |
           hugo \
-            --minify \
-            --baseURL "${{ env.S3_BUCKET }}/"
+            --minify
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
