@@ -128,7 +128,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tech-blog
-          path: public # GitHub Actions no longer adds an extra root directory to the downloaded archive, need to manually specify it
+          path: public 
+          # GitHub Actions no longer adds an extra root directory to the 
+          # downloaded archive, need to manually specify it with "path"
 
       - name: Deploy blog to S3
         run: |
