@@ -19,13 +19,13 @@ export class CdkStack extends cdk.Stack {
     // ----------------------------------------------------------------------
     const blogBucket = new s3.Bucket(this, 'BlogBucket', {
       bucketName: props.blogUrl,
-      blockPublicAccess: new s3.BlockPublicAccess({
-        blockPublicAcls: false,
-        blockPublicPolicy: false,
-        ignorePublicAcls: false,
-        restrictPublicBuckets: false,
-      }),
-      publicReadAccess: true,
+      // blockPublicAccess: new s3.BlockPublicAccess({
+      //   blockPublicAcls: false,
+      //   blockPublicPolicy: false,
+      //   ignorePublicAcls: false,
+      //   restrictPublicBuckets: false,
+      // }),
+      // publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: false,
       versioned: false,
