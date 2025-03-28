@@ -31,13 +31,13 @@ export class CdkStack extends cdk.Stack {
       versioned: false,
       autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      websiteIndexDocument: 'index.html',
-      websiteErrorDocument: '404.html',
+      // websiteIndexDocument: 'index.html',
+      // websiteErrorDocument: '404.html',
     });
 
     new cdk.CfnOutput(this, 'BlogBucketOutput', {
       key: 'BlogBucketName',
-      value: blogBucket.bucketName
+      value: blogBucket.bucketName,
     });
 
     // blogBucket.addToResourcePolicy(
@@ -59,11 +59,49 @@ export class CdkStack extends cdk.Stack {
       validation: acm.CertificateValidation.fromDns(),
     });
 
-    const s3Origin = new origins.S3StaticWebsiteOrigin(blogBucket, {
-      originId: `${props.blogUrl}.s3`,
-      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
-      httpPort: 80,
-      originShieldEnabled: false,
+    // ----------------------------------------------------------------------
+    // CloudFront S3 Origin
+    // ----------------------------------------------------------------------
+    // const s3OriginStatic = new origins.S3StaticWebsiteOrigin(blogBucket, {
+    //   originId: `${props.blogUrl}.s3`,
+    //   protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+    //   httpPort: 80,
+    //   originShieldEnabled: false,
+    // });
+
+    const s3OriginOAC = new cloudfront.S3OriginAccessControl(this, `S3OacOrigin`, {
+      originAccessControlName: `${props.blogUrl}.s3`,
+      signing: cloudfront.Signing.SIGV4_ALWAYS,
+    });
+
+    const s3Origin = origins.S3BucketOrigin.withOriginAccessControl(blogBucket, {
+      originAccessControl: s3OriginOAC,
+    });
+
+    // ----------------------------------------------------------------------
+    // CloudFront Function
+    // ----------------------------------------------------------------------
+    const cloudfrontFunction = new cloudfront.Function(this, 'CloudFrontFunction', {
+      functionName: 'CloudFrontFunctionIndexHtml',
+      runtime: cloudfront.FunctionRuntime.JS_2_0,
+      autoPublish: true,
+      code: cloudfront.FunctionCode.fromInline(`
+          async function handler(event) {
+            var request = event.request;
+            var uri = request.uri;
+            
+            // Check whether the URI is missing a file name.
+            if (uri.endsWith('/')) {
+                request.uri += 'index.html';
+            } 
+            // Check whether the URI is missing a file extension.
+            else if (!uri.includes('.')) {
+                request.uri += '/index.html';
+            }
+
+            return request;
+          }
+        `),
     });
 
     // ----------------------------------------------------------------------
@@ -76,6 +114,10 @@ export class CdkStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        functionAssociations: [{
+          function: cloudfrontFunction,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
+        }],
       },
       errorResponses: [
         {
@@ -97,7 +139,7 @@ export class CdkStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'BlogDistributionOutput', {
       key: 'BlogDistributionId',
-      value: blogDistribution.distributionId
+      value: blogDistribution.distributionId,
     });
 
     // ----------------------------------------------------------------------
@@ -158,7 +200,7 @@ export class CdkStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'GitHubS3RoleOutput', {
       key: 'GitHubS3RoleName',
-      value: githubRole.roleName
+      value: githubRole.roleName,
     });
   }
 }
