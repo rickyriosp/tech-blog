@@ -6,12 +6,14 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
-export interface CdkStackProps extends cdk.StackProps {
+export interface CloudTalentsBlogStackProps extends cdk.StackProps {
   blogUrl: string;
 }
 
-export class CdkStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: CdkStackProps) {
+export class CloudTalentsBlogStack extends cdk.Stack {
+  readonly githubProvider: iam.IOpenIdConnectProvider;
+
+  constructor(scope: Construct, id: string, props: CloudTalentsBlogStackProps) {
     super(scope, id, props);
 
     // ----------------------------------------------------------------------
@@ -114,10 +116,12 @@ export class CdkStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        functionAssociations: [{
-          function: cloudfrontFunction,
-          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
-        }],
+        functionAssociations: [
+          {
+            function: cloudfrontFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       errorResponses: [
         {
@@ -145,11 +149,19 @@ export class CdkStack extends cdk.Stack {
     // ----------------------------------------------------------------------
     // OIDC Provider
     // ----------------------------------------------------------------------
-    const githubProvider = new iam.OpenIdConnectProvider(this, 'GitHubOidcProvider', {
-      url: 'https://token.actions.githubusercontent.com',
-      clientIds: ['sts.amazonaws.com'],
-      thumbprints: ['6938fd4d98bab03faadb97b34396831e3780aea1'],
-    });
+    try {
+      this.githubProvider = iam.OpenIdConnectProvider.fromOpenIdConnectProviderArn(
+        this,
+        'GitHubOidcProvider',
+        `arn:${this.partition}:iam::${this.account}:oidc-provider/token.actions.githubusercontent.com`,
+      );
+    } catch (error) {
+      this.githubProvider = new iam.OpenIdConnectProvider(this, 'GitHubOidcProvider', {
+        url: 'https://token.actions.githubusercontent.com',
+        clientIds: ['sts.amazonaws.com'],
+        thumbprints: ['6938fd4d98bab03faadb97b34396831e3780aea1'],
+      });
+    }
 
     // ----------------------------------------------------------------------
     // IAM Policy
@@ -188,7 +200,7 @@ export class CdkStack extends cdk.Stack {
       description: 'Role used by GitHub Actions to push new content to blog S3 Bucket',
       maxSessionDuration: cdk.Duration.hours(2),
       managedPolicies: [githubPolicy],
-      assumedBy: new iam.WebIdentityPrincipal(githubProvider.openIdConnectProviderArn, {
+      assumedBy: new iam.WebIdentityPrincipal(this.githubProvider.openIdConnectProviderArn, {
         StringEquals: {
           'token.actions.githubusercontent.com:aud': ['sts.amazonaws.com'],
         },
