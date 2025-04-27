@@ -66,9 +66,9 @@ jobs:
       - name: Outputs
         id: cdk_out
         run: |
-          echo "s3=$(aws cloudformation describe-stacks --stack-name CdkStack --query "Stacks[0].Outputs[?OutputKey=='BlogBucketName'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
-          echo "cfid=$(aws cloudformation describe-stacks --stack-name CdkStack --query "Stacks[0].Outputs[?OutputKey=='BlogDistributionId'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
-          echo "role=$(aws cloudformation describe-stacks --stack-name CdkStack --query "Stacks[0].Outputs[?OutputKey=='GitHubS3RoleName'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
+          echo "s3=$(aws cloudformation describe-stacks --stack-name CloudTalentsBlogStack --query "Stacks[0].Outputs[?OutputKey=='BlogBucketName'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
+          echo "cfid=$(aws cloudformation describe-stacks --stack-name CloudTalentsBlogStack --query "Stacks[0].Outputs[?OutputKey=='BlogDistributionId'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
+          echo "role=$(aws cloudformation describe-stacks --stack-name CloudTalentsBlogStack --query "Stacks[0].Outputs[?OutputKey=='GitHubS3RoleName'].OutputValue" --output text)" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build
